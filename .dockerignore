@@ -1,0 +1,10 @@
+.git
+.idea
+.vscode
+target
+build
+dist
+*.log
+uploads
+ecommerce-backend-uploads
+postman-user-apis.json

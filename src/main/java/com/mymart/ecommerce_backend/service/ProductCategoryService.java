@@ -1,18 +1,30 @@
 package com.mymart.ecommerce_backend.service;
 
 import com.mymart.ecommerce_backend.dto.ProductCategoryDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface ProductCategoryService {
 
-    public ProductCategoryDto createProductCategory(ProductCategoryDto categoryDto);
+    ProductCategoryDto createProductCategory(
+            ProductCategoryDto productCategoryDto,
+            MultipartFile image
+    );
 
-    public List<ProductCategoryDto> getAllProductCategories();
+    List<ProductCategoryDto> getAllProductCategories();
 
-    public ProductCategoryDto getProductCategoryById(Integer categoryId);
+    ProductCategoryDto getProductCategoryById(
+            Integer categoryId
+    );
 
-    public ProductCategoryDto updateProductCategory(Integer categoryId, ProductCategoryDto categoryDto);
+    ProductCategoryDto updateProductCategory(
+            Integer categoryId,
+            ProductCategoryDto productCategoryDto,
+            MultipartFile image
+    );
 
-    public ProductCategoryDto deleteProductCategory(Integer categoryId);
+    ProductCategoryDto deleteProductCategory(
+            Integer categoryId
+    );
 }

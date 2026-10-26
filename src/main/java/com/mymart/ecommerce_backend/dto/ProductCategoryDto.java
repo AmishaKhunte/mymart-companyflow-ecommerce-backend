@@ -8,6 +8,7 @@ public class ProductCategoryDto {
 
     private Integer categoryId;
     private String categoryName;
+    private String categoryImage;
     private String categoryDescription;
     private String activeSw;
     private String createdBy;

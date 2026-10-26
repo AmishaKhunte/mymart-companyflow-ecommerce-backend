@@ -19,6 +19,9 @@ public class ProductCategoryEntity {
 
     private String categoryName;
 
+    @Column(name = "category_image")
+    private String categoryImage;
+
     private String categoryDescription;
 
     private String activeSw;

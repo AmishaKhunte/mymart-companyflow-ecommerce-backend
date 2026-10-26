@@ -8,6 +8,11 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 @Service
 public class RazorpayServiceImpl implements RazorPayService {
 
@@ -46,5 +51,38 @@ public class RazorpayServiceImpl implements RazorPayService {
         return refund.get("id");
 
     }
+
+
+    @Override
+    public boolean verifyPaymentSignature(
+            String razorpayOrderId,
+            String razorpayPaymentId,
+            String razorpaySignature
+    ) throws Exception {
+
+        String payload = razorpayOrderId + "|" + razorpayPaymentId;
+
+        Mac mac = Mac.getInstance("HmacSHA256");
+
+        SecretKeySpec secretKeySpec = new SecretKeySpec(
+                keySecret.getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+        );
+
+        mac.init(secretKeySpec);
+
+        byte[] expectedSignature = mac.doFinal(
+                payload.getBytes(StandardCharsets.UTF_8)
+        );
+
+        byte[] receivedSignature =
+                java.util.HexFormat.of().parseHex(razorpaySignature);
+
+        return MessageDigest.isEqual(
+                expectedSignature,
+                receivedSignature
+        );
+    }
+
 
 }

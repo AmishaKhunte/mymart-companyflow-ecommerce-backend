@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order")
@@ -97,5 +98,41 @@ public class OrderRestController {
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
+
+
+    @PostMapping("/verify-payment")
+    public ResponseEntity<ApiResponse<Boolean>> verifyPayment(
+            @RequestBody Map<String, String> paymentDetails
+    ) throws Exception {
+
+        Integer orderId = Integer.valueOf(paymentDetails.get("orderId"));
+
+        String razorpayOrderId = paymentDetails.get("razorpay_order_id");
+        String razorpayPaymentId = paymentDetails.get("razorpay_payment_id");
+        String razorpaySignature = paymentDetails.get("razorpay_signature");
+
+        boolean verified = orderService.verifyPayment(
+                orderId,
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
+        );
+
+        ApiResponse<Boolean> response = new ApiResponse<>();
+
+        if (verified) {
+            response.setStatusCode(200);
+            response.setMessage("Payment verified successfully");
+            response.setData(true);
+            return ResponseEntity.ok(response);
+        }
+
+        response.setStatusCode(400);
+        response.setMessage("Payment verification failed");
+        response.setData(false);
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
 
 }

@@ -33,21 +33,19 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader =
-                request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
         String token = null;
         String email = null;
 
+        // Read JWT from Authorization header
         if (authHeader != null
                 && authHeader.startsWith("Bearer ")) {
 
             token = authHeader.substring(7);
 
             try {
-
-                email =
-                        jwtUtil.extractUsername(token);
+                email = jwtUtil.extractUsername(token);
 
             } catch (Exception e) {
 
@@ -57,6 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
+        // Authenticate user if valid JWT is present
         if (email != null
                 && SecurityContextHolder
                 .getContext()
@@ -72,19 +71,18 @@ public class JwtFilter extends OncePerRequestFilter {
             )) {
 
                 List<SimpleGrantedAuthority> authorities =
-
                         user.getRoles()
-
                                 .stream()
-
-                                .map(role -> new SimpleGrantedAuthority(
-                                        normalizeRole(role.getName())
-                                ))
-
+                                .map(role ->
+                                        new SimpleGrantedAuthority(
+                                                normalizeRole(
+                                                        role.getName()
+                                                )
+                                        )
+                                )
                                 .toList();
 
                 UsernamePasswordAuthenticationToken auth =
-
                         new UsernamePasswordAuthenticationToken(
                                 user,
                                 null,
@@ -97,6 +95,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
+        // Continue request
         filterChain.doFilter(request, response);
     }
 
@@ -111,11 +110,15 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private String normalizeRole(String roleName) {
+
         if (roleName == null || roleName.isBlank()) {
             return "";
         }
 
-        String normalizedRole = roleName.trim().toUpperCase(Locale.ROOT);
+        String normalizedRole =
+                roleName
+                        .trim()
+                        .toUpperCase(Locale.ROOT);
 
         if (normalizedRole.startsWith("ROLE_")) {
             return normalizedRole;

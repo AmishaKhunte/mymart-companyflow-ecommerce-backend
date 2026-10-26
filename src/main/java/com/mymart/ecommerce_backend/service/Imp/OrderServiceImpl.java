@@ -248,20 +248,95 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
-    @Override
-    public List<OrderDto> getCustomerOrders(
-            String email
-    ) {
 
-        return orderRepo
-                .findByUserEmail(email)
+
+    @Override
+    public List<OrderDto> getCustomerOrders(String email) {
+
+        return orderRepo.findByUserEmail(email)
                 .stream()
-                .map(OrderMapper::toDto)
+                .map(orderEntity -> {
+
+                    OrderDto orderDto = OrderMapper.toDto(orderEntity);
+
+                    List<OrderItemsDto> items = orderItemsRepo.findAll()
+                            .stream()
+                            .filter(item -> item.getOrder() != null
+                                    && item.getOrder().getOrderId()
+                                    .equals(orderEntity.getOrderId()))
+                            .map(item -> {
+                                OrderItemsDto itemDto = new OrderItemsDto();
+
+                                itemDto.setOrderItemId(item.getOrderItemId());
+                                itemDto.setProductId(item.getProductId());
+                                itemDto.setImageUrl(item.getImageUrl());
+                                itemDto.setUnitPrice(item.getUnitPrice());
+                                itemDto.setQuantity(item.getQuantity());
+
+                                return itemDto;
+                            })
+                            .collect(Collectors.toList());
+
+                    orderDto.setOrderItems(items);
+
+                    return orderDto;
+                })
                 .collect(Collectors.toList());
     }
+
+
 
     private String generateOrderTrackingNumber() {
 
         return UUID.randomUUID().toString();
     }
+
+
+
+    @Override
+    public boolean verifyPayment(
+            Integer orderId,
+            String razorpayOrderId,
+            String razorpayPaymentId,
+            String razorpaySignature
+    ) throws Exception {
+
+        Optional<OrderEntity> optionalOrder = orderRepo.findById(orderId);
+
+        if (optionalOrder.isEmpty()) {
+            return false;
+        }
+
+        OrderEntity orderEntity = optionalOrder.get();
+
+        // Ensure the payment belongs to this application's order.
+        if (orderEntity.getRazorpayOrderId() == null
+                || !orderEntity.getRazorpayOrderId().equals(razorpayOrderId)) {
+            return false;
+        }
+
+        // Prevent a second verification from processing an already-paid order.
+        if ("PAID".equalsIgnoreCase(orderEntity.getPaymentStatus())) {
+            return razorpayPaymentId.equals(orderEntity.getRazorpayPaymentId());
+        }
+
+        boolean validSignature = razorPayService.verifyPaymentSignature(
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
+        );
+
+        if (!validSignature) {
+            return false;
+        }
+
+        orderEntity.setRazorpayPaymentId(razorpayPaymentId);
+        orderEntity.setPaymentStatus("PAID");
+        orderEntity.setOrderStatus("CONFIRMED");
+
+        orderRepo.save(orderEntity);
+
+        return true;
+    }
+
 }

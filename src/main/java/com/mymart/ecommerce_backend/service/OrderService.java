@@ -1,3 +1,4 @@
+
 package com.mymart.ecommerce_backend.service;
 
 import com.mymart.ecommerce_backend.dto.OrderDto;
@@ -8,14 +9,22 @@ import java.util.List;
 
 public interface OrderService {
 
-    public PurchaseOrderResponseDto createOrder(PurchaseOrderRequestDto orderReqDto) throws Exception;
+    PurchaseOrderResponseDto createOrder(
+            PurchaseOrderRequestDto orderReqDto
+    ) throws Exception;
 
-    public OrderDto updateOrder(Integer orderId, OrderDto orderDto);
+    OrderDto updateOrder(Integer orderId, OrderDto orderDto);
 
-    public OrderDto cancelOrder(Integer orderId) throws Exception;
+    OrderDto cancelOrder(Integer orderId) throws Exception;
 
-    public OrderDto trackOrder(Integer orderId);
+    OrderDto trackOrder(Integer orderId);
 
-    public List<OrderDto> getCustomerOrders(String email);
+    List<OrderDto> getCustomerOrders(String email);
 
+    boolean verifyPayment(
+            Integer orderId,
+            String razorpayOrderId,
+            String razorpayPaymentId,
+            String razorpaySignature
+    ) throws Exception;
 }
